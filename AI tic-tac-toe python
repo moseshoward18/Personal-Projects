@@ -1,0 +1,117 @@
+def player(active):
+    return 'X' if active else 'O'
+
+class Game:
+    def __init__(self,board,active):
+        self.board = board
+        self.active = active
+        
+    def over(self):
+        return self.win(player(True)) or self.win(player(False)) or '*' not in self.board
+        
+    def win(self,player):
+        m = player
+        board = self.board
+        winList = [[board[0],board[1],board[2]],
+                   [board[3],board[4],board[5]],
+                   [board[6],board[7],board[8]],
+                   [board[0],board[3],board[6]],
+                   [board[1],board[4],board[7]],
+                   [board[2],board[5],board[8]],
+                   [board[0],board[4],board[8]],
+                   [board[2],board[4],board[6]]]
+        return [m,m,m] in winList
+    
+    def getMoves(self):
+        game_list = []
+        for i in range(len(self.board)):
+            if self.board[i] == '*':
+                game_list.append(Game([*self.board[:i],player(self.active),*self.board[i+1:]],not self.active))
+        return game_list
+    
+    def score(self, depth):
+        if self.win(player(True)):
+            return 10 - depth
+        elif self.win(player(False)):
+            return depth - 10
+        else:
+            return 0
+    
+    def findChange(self,newBoard):
+        for i in range(len(newBoard)):
+            if self.board[i] != newBoard[i]:
+                return i
+
+def minimax(game):
+    scores = []
+    moves = []
+    for possible_game in game.getMoves():
+        scores.append(minimaxHelper(possible_game, 1))
+        moves.append(game.findChange(possible_game.board))
+    if game.active:
+        return moves[scores.index(max(scores))]
+    else:
+        return moves[scores.index(min(scores))]
+
+def minimaxHelper(game,depth):
+    if game.over():
+        return game.score(depth)
+    depth += 1
+    if game.active:
+        return max([minimaxHelper(possible_game, depth) for possible_game in game.getMoves()])
+    else:
+        return min([minimaxHelper(possible_game, depth) for possible_game in game.getMoves()])
+    
+    
+def printBoard(board):
+    print(board[0],board[1],board[2])
+    print(board[3],board[4],board[5])
+    print(board[6],board[7],board[8])
+    print()
+    
+def start():
+    board = ['*']*9
+    from random import randint
+    board[randint(0,8)] = player(False)
+    game = Game(board,True)
+    turn = 1
+    printBoard(board)
+    while not game.over():
+        board[minimax(game)] = player(turn%2)
+        turn+=1
+        game = Game(board,turn%2)
+        printBoard(board)
+    if game.win(player(True)):
+        print(player(True), "wins!")
+    elif game.win(player(False)):
+        print(player(False), "wins!")
+    else:
+        print('Tie')
+
+#start()
+
+def humanPlay():
+    board = ['*']*9
+    board[int(input("Enter position:  "))] = player(False)
+    game = Game(board,True)
+    turn = 1
+    printBoard(board)
+    while not game.over():
+        board[minimax(game)] = player(True)
+        turn+=1
+        game = Game(board,True)
+        printBoard(board)
+        if not game.over():
+          board[int(input("Enter position:  "))] = player(False)
+          game = Game(board,False)
+          turn+=1
+          printBoard(board)
+        
+    if game.win(player(True)):
+        print(player(True), "wins!")
+    elif game.win(player(False)):
+        print(player(False), "wins!")
+    else:
+        print('Tie')
+
+humanPlay()
