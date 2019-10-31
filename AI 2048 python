@@ -16,7 +16,7 @@ class Board:
         elif direction == "down" or direction == "s":
             self.down()
         self.getZeros()
-        if self.zeros!= [] and direction!="null" or new:
+        if self.zeros!= [] and (direction!="null" or new):
             self.newNum()
                     
     def left(self):
@@ -102,7 +102,7 @@ class Board:
     
     def newNum(self):
         coord = random.choice(self.zeros)
-        self.board[coord[0]][coord[1]] = 4 if random.random() > .9 else 2
+        self.board[coord[0]][coord[1]] = 4 if random.random() >= .9 else 2
             
     def __str__(self):
         return ['\n'.join([''.join(['{:5}'.format(item) for item in row]) 
@@ -225,12 +225,14 @@ def AI(board,score, depth = 0):
             return "down"
         else:
             return "stop"
-    return max(moves,key = lambda x: x[0])[1]
     
+    return max(moves,key = lambda x: x[0])[1]
+
 def game():    
     f = open("C:\\Users\\moses\\Desktop\\gamePrint.txt", "a")
     board = Board([[0,0,0,0],[0,0,0,0],[0,0,0,0],[0,0,0,0]])
     board.newNum()
+    #board.print()
     score = 100
     move = 0
     while True:
@@ -248,7 +250,6 @@ def game():
         for row in board.board:
             f.write(str(str(row[0])+"\t"+str(row[1])+"\t"+str(row[2])+"\t"+str(row[3])+"\n"))
         f.write("\n")
-
     f.write("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
     f.close()
     return board.score
