@@ -1,0 +1,50 @@
+from random import randint
+import pygame
+import time
+
+w = 300
+h = 150
+s = 3
+
+pygame.init()
+screen = pygame.display.set_mode((w*s, h*s))
+colors = [(0, 0, 0), (255, 255, 255)]
+
+b = [[0 for x in range(w)] for y in range(h)]
+n = [[0 for x in range(w)] for y in range(h)]
+
+for y in range(1, h-1):
+    for x in range(1, w-1):
+        b[y][x] = 1 if randint(0, 200) % 10 == 0 else 0
+
+while True:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit(); sys.exit();
+    
+    for y in range(1, h-1):
+        for x in range(1, w-1):
+            neighbors = 0
+            neighbors += b[y][x+1] 	# right
+            neighbors += b[y][x-1] 	# left
+            neighbors += b[y+1][x] 	# up
+            neighbors += b[y-1][x] 	# down
+            neighbors += b[y+1][x+1]	# upright
+            neighbors += b[y+1][x-1]	# upleft
+            neighbors += b[y-1][x-1]	# downleft
+            neighbors += b[y-1][x+1]	# downright
+            n[y][x] = b[y][x]
+
+            if b[y][x] == 1:
+                if neighbors > 3 or neighbors < 2:
+                    n[y][x] = 0
+            else:
+                if neighbors == 3:
+                    n[y][x] = 1
+
+    for y in range(len(n)):
+        for x in range(len(n[0])):
+            pygame.draw.rect(screen, colors[n[y][x]], (x*s, y*s, s, s), 0)
+    pygame.display.update()
+
+    b = [[elem for elem in row] for row in n]
