@@ -1,0 +1,59 @@
+import collections
+print("Think of a random word!")
+wordLen = int(input("how many letters are there in the word?"))
+
+def goodList(lst,value):
+  newlist = []
+  for element in lst:
+    newlist.append(element[value])
+  return newlist
+
+def getMax(used, wordList):
+  d = collections.defaultdict(int)
+  for word in wordList:
+    if len(word) == wordLen:
+      for letter in word:
+        d[letter] += 1
+  for letter in used:
+    if letter[0] in d.keys():
+      del d[letter[0]]
+  while d[max(d, key=d.get)] == len(wordList):
+    del d[max(d, key=d.get)]
+  return max(d, key=d.get)
+
+def newList(include, exclude, wordList):
+  newlst = []
+  for word in wordList:
+    if len(word) == wordLen:
+      if not any(i in goodList(exclude,0) for i in word):
+        if all(map(lambda i: i[0] == word[i[1]],include)):
+          newlst.append(word)
+  return newlst
+
+def main():
+  wordFile = open("words.txt","r")
+  wordList = wordFile.read().split("\n")
+  solved = ['_']*wordLen
+  include = []
+  exclude = []
+  incorrect = 0
+
+  while(len(include) != wordLen and len(wordList) != 1):
+    letter = getMax(include+exclude, wordList)
+    ans = input(str("yes or no, is "+ letter +" in the word?"))
+    if ans == "yes":
+      for i in range(int(input("how many "+str(letter)+"'s are there?"))):
+        position = int(input("which position is the letter at?"))-1
+        include.append([letter,position])
+        solved[position] = letter
+    else:
+      incorrect += 1
+      exclude.append([letter,0])
+    print("Ok, let me think...\n")
+    wordList = newList(include, exclude, wordList)
+    print(" ".join(solved))
+    print("number of possible words:",len(wordList))
+  
+  print("I got it in",incorrect,"misses! Your word is",wordList[0],"!")
+
+main()
