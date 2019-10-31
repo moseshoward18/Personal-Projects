@@ -1,0 +1,277 @@
+import random
+names=["Cleetus","Doug","Skeeter","Billy","Eddie","Bob","Ted","Remus","Jeb","Frank","Tommy","Hank"]
+
+def fighterMaker():
+  name = random.choice(names)
+  attack = "2d6+3"
+  hp = random.randint(4,14)
+  ac = random.randint(16,18)
+  init = random.randint(0,2)
+  strength = random.randint(3,6)
+  numAttacks = 1
+  speed = 3
+  return name, attack, hp, ac, init, strength,numAttacks,speed
+
+def goblinGenerator():
+  name = "goblin"
+  attack = "1d4+2"
+  hp = 6
+  ac = 16
+  init = 6
+  strength = 1
+  numAttacks = 1
+  speed = 4
+  team = "goblin"
+  return name, attack, hp, ac, init, strength,numAttacks,speed,team
+
+def bearGenerator():
+  name = "bear"
+  attack = "1d4+3"
+  hp = 32
+  ac = 17
+  init = 2
+  strength = 6
+  numAttacks = 3
+  speed = 4
+  team = "bear"
+  return name, attack, hp, ac, init, strength,numAttacks,speed,team  
+
+def distance(pos1,pos2):
+  from math import sqrt
+  return sqrt((pos1[0]-pos2[0])**2 + (pos1[1]-pos2[1])**2)
+
+
+class Character:
+  def __init__(self,_name,_attack,_hp,_ac,_init,_strength,_numAttacks,_speed,_team,_position):
+    self.name = _name
+    self.attack = self.parse(_attack)
+    self.hp = _hp
+    self.ac = _ac
+    self.init = _init
+    self.strength = _strength
+    self.numAttacks = _numAttacks
+    self.speed = _speed
+    #self.attackType = _attackType
+    self.position = _position
+    self.tempInit = 0
+    self.team = _team
+
+  def parse(self, attack):
+    numDice = attack[:attack.find("d")]
+    if "+" in attack:
+      numSides = attack[attack.find("d")+1:attack.find("+")]
+      bonus = attack[attack.find("+")+1:]
+    else:
+      numSides = attack[attack.find("d")+1:]
+      bonus = 0
+    return [int(numDice),int(numSides),int(bonus)]
+  
+  def makeAttack(self):
+    atk = self.attack
+    hit = random.randint(1,20)+self.strength
+    damage = sum([random.randint(1,atk[1])+atk[2] for i in range(atk[0])])
+    return [self.name,hit,damage,self.position]
+  
+  def attackedBy(self,atk):
+    name = atk[0]
+    hit = atk[1] 
+    damage = atk[2]
+    pos = atk[3]
+    if pos == self.position:
+      if hit >= self.ac:
+        self.hp-=damage
+        print(name,"attacked",self.name,"for",damage,"damage.")
+        if self.isDead():
+          print(self.name, "is dead")
+        else:
+          print(self.name,"has",self.hp,"hp remaining.")
+      else:
+        print(name,"attacked",self.name,"and missed!")
+
+  def chooseTarget(self,queue):
+    closest = 10000
+    enemy = 0
+    for i, target in enumerate(queue):
+      if self is not target and target.getTeam() != self.team:
+        dist = distance(target.getPosition(),self.position)
+        if  dist < closest:
+          enemy = i
+          closest = dist
+    return queue[enemy]
+  
+  def getHp(self):
+    return self.hp
+
+  def getInit(self):
+    return self.init
+
+  def rollInit(self):
+    self.tempInit = random.randint(1,20)+self.init
+  
+  def getTempInit(self):
+    return self.tempInit
+  
+  def isDead(self):
+    return True if self.hp<=0 else False
+
+  def getPosition(self):
+    return self.position
+  
+  def getName(self):
+    return self.name
+  
+  def getTeam(self):
+    return self.team
+  
+  def getNumAttacks(self):
+    return self.numAttacks
+  
+  def moveTo(self,target):
+    if self.position != target.getPosition():
+      for i in range(self.speed):
+        self.moveByOne(target.getPosition())
+      print(self.name, "moves towards",target.getName())
+    if self.position == target.getPosition():
+      print(self.name, "is at",target.getName())
+
+  def moveByOne(self,target):
+    x1 = self.position[0]
+    y1 = self.position[1]
+    x2 = target[0]
+    y2 = target[1]
+    if x2<x1:
+      changeX = -1
+    elif x2>x1:
+      changeX = 1
+    else:
+      changeX = 0
+    
+    if y2<y1:
+      changeY = -1
+    elif y2>y1:
+      changeY = 1
+    else:
+      changeY = 0
+    self.position=[x1+changeX,y1+changeY]
+    
+
+class Wizard(Character):
+  def __init__(self,_name,_attack,_hp,_ac,_init,_strength,_speed,_team,_position):
+    Character.__init__(self,_name,_attack,_hp,_ac,_init,_strength,_speed,_team,_position)
+    
+
+
+
+class Battle:
+  def __init__(self):
+    self.queue = []
+    self.rounds = 0
+
+  def add(self,character):
+    self.queue.append(character)
+
+  def bubble_order(self):
+    newQueue = self.queue
+    def swap(i, j):
+      newQueue[i], newQueue[j] = newQueue[j], newQueue[i]
+    n = len(newQueue)
+    swapped = True    
+    x = -1
+    while swapped:
+      swapped = False
+      x = x + 1
+      for i in range(1, n-x):
+        if newQueue[i - 1].getTempInit() < newQueue[i].getTempInit():
+          swap(i - 1, i)
+          swapped = True
+
+  def reOrder(self):
+    i = 0
+    while i < len(self.queue):
+      if self.queue[i].isDead():
+        del self.queue[i]
+        i-=1
+      i+=1
+
+  def printInfo(self):
+    for position, character in enumerate(self.queue):
+      print(position,": ",character.team," ",character.getName()," with initiative ", character.getTempInit(),sep="")
+
+  def beginFight(self):
+    for character in self.queue:
+      character.rollInit()
+    self.bubble_order()
+    self.printInfo()
+  
+  def oneTeam(self):
+    team = self.queue[0].getTeam()
+    for i in self.queue:
+      if i.getTeam() != team:
+        return False
+    self.winner = team
+    return True
+  
+  def results(self):
+    print()
+    print("team",self.queue[0].getTeam(),"won in",self.rounds,"rounds!")
+    for character in self.queue:
+      print(character.getName(),"survived with",character.getHp(),"health")
+
+
+  def fight(self):
+    self.beginFight()
+    while(not self.oneTeam()):
+      for character in self.queue:
+        print()
+        if not character.isDead():
+          enemy = character.chooseTarget(self.queue)
+          character.moveTo(enemy)
+          for i in range(character.getNumAttacks()):
+            enemy = character.chooseTarget(self.queue)
+            enemy.attackedBy(character.makeAttack())
+      self.reOrder()
+      self.rounds+=1
+    self.results()
+
+  def getRounds(self):
+    return self.rounds
+
+  def getQueue(self):
+    return self.queue
+  
+  def getWinner(self):
+    return self.winner
+
+def simulate(trials):
+  import collections
+  d = collections.defaultdict(list)
+  for i in range(trials):
+    print("\ntrial",i)
+    battle = battleGenerator()
+    battle.fight()
+    d[battle.getWinner()].append([1,battle.getRounds(),len(battle.getQueue())])
+  for key,lstOfVals in d.items():
+    battlesWon = sum([vals[0] for vals in lstOfVals])
+    print()
+    print("victory for",key,battlesWon,"out of",trials,"trials")
+    print("average number of rounds",sum([vals[1] for vals in lstOfVals])/battlesWon)
+    print("average number of survivors",sum([vals[2] for vals in lstOfVals])/battlesWon)
+    
+def battleGenerator():
+  battle = Battle()
+  #battle.add(Character(*fighterMaker(),"Human",[10,20]))
+  battle.add(Character("Falren","2d6+3",100,17,7,1,2,30,"party",[0,0]))
+
+  battle.add(Character("gobo1",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo5",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo6",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo7",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo8",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo2",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo3",*goblinGenerator()[1:],[0,1]))
+  battle.add(Character("gobo4",*goblinGenerator()[1:],[0,1]))
+  #battle.add(Character(*bearGenerator(),[0,0]))
+  return battle
+
+simulate(100)
+
