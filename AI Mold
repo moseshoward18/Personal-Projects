@@ -1,0 +1,251 @@
+import random
+
+class Tile:
+    def __init__(self, x, y, nutrients):
+        self.lst = []
+        self.nutrients = nutrients
+        self.message = "none"
+        self.x = x
+        self.y = y
+
+    def makeNeighbors(self,b):
+        x = self.x
+        y = self.y
+        self.neighbors = [b[y][x-1], b[y-1][x-1], b[y-1][x], b[y-1][x+1],b[y][x+1], b[y+1][x+1], b[y+1][x], b[y+1][x-1]]
+
+    def total_nutrients(self): 
+        return self.nutrients + sum([c.nutrients for c in self.lst])
+
+    def numNeighbors(self):
+        sum = 0
+        for tile in self.neighbors:
+            if len(tile.lst) > 0:
+                sum += 1
+        return sum
+    def numFed(self):
+        max = 0
+        for tile in self.neighbors:
+            if len(tile.lst):
+                max = tile.lst[0].fed if tile.lst[0].fed < max else max
+        return max
+                
+    def numEmpty(self):
+        sum = 0
+        for tile in self.neighbors:
+            if tile.message == "no food":
+                sum += 1
+        return sum
+
+    def color(self):
+        r = 0
+        b = 0
+        g = self.nutrients if self.nutrients < 255 else 255
+        if len(self.lst) > 0:
+#            b = (100 + len(self.lst)*30) if (100 + len(self.lst)*30 < 256) else 255                  #cell heatmap
+#            b = 100 +self.total_nutrients()*2 if 100 + self.total_nutrients()*2 < 255 else 255 #nutrient heatmap
+            b= 55+self.lst[0].fed
+#            b = 255 if len(self.lst)> 5 else 0
+#            b = 255 if self.lst[0].feeder else 127
+#            b = 255 if self.lst[0].nutrients > 1 else 127
+        if self.message == "no food":
+            r = 255
+        return (r, g, b)
+
+
+class Cell:
+
+    def __init__(self, current, nutrients):
+        self.nutrients = nutrients
+        self.current = current
+        self.current.lst.append(self)
+        self.ready = True
+        self.fed = 0
+        self.feeder = False
+
+    def die(self):
+        if random.random() > .999:
+            self.current.message = "no food"
+            self.current.lst.remove(self)
+            if (self.current) not in staticTiles:
+                deadTiles.append(self.current)
+            if self.current in cellTiles:
+                cellTiles.remove(self.current)
+            
+        
+    def move(self, tile):
+        if self.nutrients > 1 and tile.message != "no food":
+            if len(tile.lst) == 0:
+                cellTiles.append(tile)
+                self.nutrients-=1
+                if self.nutrients <= 0:
+                    print("move death")
+                    self.current.lst.remove(self)
+            tile.lst.append(self)
+            self.x = tile.x
+            self.y = tile.y
+            self.current.lst.remove(self)
+            if len(self.current.lst) == 0:
+                cellTiles.remove(self.current)
+            self.current = tile
+
+    def run(self):
+        moves = []
+        n = [i for i in self.current.neighbors]
+        random.shuffle(n)
+        for tile in n:
+            if tile.numNeighbors() > 1 and tile.message != "no food":
+                moves.append(tile)
+        if len(moves) > 0:
+            self.move(random.choice(moves))#min(moves, key=lambda x: len(x.lst)))
+
+    def feed(self):
+        if self.current.nutrients > 0:
+            self.fed = 200
+            self.nutrients += 1
+            self.current.nutrients -= 1
+            return True
+        for neighbor in self.current.neighbors:
+            if neighbor.nutrients:
+                self.fed = 199
+                self.nutrients += 1
+                neighbor.nutrients -= 1
+                return True
+        tiles = []
+        n = [i for i in self.current.neighbors]
+        random.shuffle(n)
+        for t in n:
+            match = False
+            for cell in t.lst:
+                if cell.fed > self.fed:
+                    match = True
+                    continue
+            if match:
+                tiles.append(t)
+        if len(tiles)>0:
+            tiles.sort(key=lambda x: sorted(x.lst,key=lambda y: y.fed)[0].fed, reverse = True)
+            tile = tiles[0]
+            for cell in tile.lst:
+                cell.feeder = True
+                if cell.nutrients > self.nutrients+1:
+                    cell.nutrients -= 1
+                    self.nutrients += 1
+            if self.feeder is False:# and self.bridge() is False:
+                self.move(tile)
+                self.fed = tile.lst[0].fed
+            for c in self.current.lst:
+                c.fed = cell.fed-1
+            return True
+        return False
+
+    def bridge(self):
+        x = [tile for tile in self.current.neighbors if len(tile.lst)]
+        f = lambda x: len(self.current.neighbors[x].lst)
+        #if len(x) == 2:
+        #    if x[0] not in x[1].neighbors:
+        #        return True
+        if len(x) < 4:
+            for tile in x:
+                if tile.lst[0].fed == self.fed:
+                    return False
+            return True
+        #for i in range(4):
+        #    if (f(i) and f((i+4)%8)) and not(f(i+1) or f(i+2) or f(i+3) or f((i+5)%8) or f((i+6)%8) or f((i+7)%8)):
+        #        return True
+        return False
+
+    def update(self):
+        ate = self.feed()
+        if self.nutrients > 5:
+            self.ready = True
+
+        if self.nutrients > 10 and self.fed:
+            Cell(self.current, self.nutrients // 2)
+            self.nutrients //= 2
+
+        if self.fed == 0 and not ate:
+            self.run()
+            if self.current.numNeighbors() < 3:
+                self.ready = False
+
+        self.fed= self.fed-1 if self.fed-1 > 0 else 0
+
+        if len(self.current.lst)>5:
+            self.move(random.choice(self.current.neighbors))
+        
+        if self.nutrients <= 0:
+            self.current.lst.remove(self)
+            print("death")
+            return
+
+        self.feeder = False
+        if self.fed == 0:
+            self.die()
+
+
+
+
+###################################################################################
+
+import pygame
+import sys
+
+width = 100
+height = 60
+s = 8
+
+pygame.init()
+screen = pygame.display.set_mode((width*s, height*s))
+
+board = [[Tile(x, y, 0) for x in range(width)] for y in range(height)]
+cellTiles = []
+staticTiles = []
+deadTiles = []
+for row in board:
+    for tile in row:
+        if tile.x <= 1 or tile.x >= width-2 or tile.y <= 1 or tile.y >= height-2:
+            tile.message = "no food"
+        if tile.x > 0 and tile.x < width-1 and tile.y > 0 and tile.y < height-1:
+            tile.makeNeighbors(board)
+
+Cell(board[height//2][width//2], 1)
+board[height//2][width//2].nutrients = 3000
+staticTiles.append(board[height//2][width//2])
+cellTiles.append(board[height//2][width//2])
+
+
+for i in range(width*height//10):
+    y = random.randint(3,height-3)
+    x = random.randint(2,width-3)
+    board[y][x].nutrients = 100
+    staticTiles.append(board[y][x])
+
+turn = 0
+while True:
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit(); sys.exit();
+    numCells = 0
+
+    for tile in cellTiles:
+        for cell in tile.lst:
+            cell.ready = True
+    for tile in cellTiles:
+        for cell in tile.lst:
+            if cell.ready:
+                numCells+=1
+                cell.update()
+                cell.ready = False
+        pygame.draw.rect(screen, tile.color(), (tile.x*s, tile.y*s, s, s), 0)
+    for tile in staticTiles:
+        if tile.nutrients:
+            pygame.draw.rect(screen, (0,200,0), (tile.x*s, tile.y*s, s, s), 0)
+        else:
+            staticTiles.remove(tile)
+    for tile in deadTiles:
+         pygame.draw.rect(screen, (200,0,0), (tile.x*s, tile.y*s, s, s), 0)
+
+
+    pygame.display.update()
+    turn+=1
+    print(turn,numCells,len(cellTiles))
