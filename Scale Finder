@@ -1,0 +1,38 @@
+scales = {
+" C Major Pentatonic ":"C, D, E, F, G, A, B, C",
+" C# Major Pentatonic ":"Db, Eb, F, Gb, Ab, Bb, C, Db",
+" D Major Pentatonic ":"D, E, F#, G, A, B, C#, D",
+" D# Major Pentatonic ":"Eb, F, G, Ab, Bb, C, D, Eb",
+" E Major Pentatonic ":"E, F#, G#, A, B, C#, D#, E",
+" F Major Pentatonic ":"F, G, A, Bb, C, D, E, F",
+" F# Major Pentatonic ":"F#, G#, A#, B, C#, D#, F, F#",
+" G Major Pentatonic ":"G, A, B, C, D, E, F#, G",
+" G# Major Pentatonic ":"Ab, Bb, C, Db, Eb, F, G, Ab",
+" A Major Pentatonic ":"A, B, C#, D, E, F#, G#, A",
+" A# Major Pentatonic ":"Bb, C, D, Eb, F, G, A, Bb",
+" B Major Pentatonic ":"B, C#, D#, E, F#, G#, A#, B",
+
+"C Minor Pentatonic":"C, D, Eb, F, G, Ab, Bb, C",
+"C# Minor Pentatonic":"C#, D#, E, F#, G#, A, B, C#",
+"D Minor Pentatonic":"D, E, F, G, A, Bb, C, D",
+" D# Minor Pentatonic ":"D#, F, F#, G#, A#, B, C#, D#",
+" E Minor Pentatonic ":"E, F#, G, A, B, C, D, E",
+" F Minor Pentatonic ":"F, G, Ab, Bb, C, Db, Eb, F",
+" F# Minor Pentatonic ":"F#, G#, A, B, C#, D, E, F#",
+" G Minor Pentatonic ":"G, A, Bb, C, D, Eb, F, G",
+"G# Minor Pentatonic":"G#, A#, B, C#, D#, E, F#, G#",
+"A Minor Pentatonic":"A, B, C, D, E, F, G, A",
+"A# Minor Pentatonic":"A#, C, C#, D#, F, F#, G#, A#",
+"B Minor Pentatonic":"B, C#, D, E, F#, G, A, B"
+}
+
+query = input("enter comma seperated notes within the scale(ex. Ab, C, C#)\n").split(", ")
+something = False
+for key, scale in scales.items():
+  if set(query) <= set(scale.split(", ")):
+    print(key,scale)
+    something = True
+if not something:
+  print("no results found")
+
+print(scales[input("query here")])
