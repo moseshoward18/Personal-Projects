@@ -205,16 +205,18 @@ def getChoices(board):
     return [choice for choice in choices if board.copy(choice).board != board.board]
     
 def AI(board,score, depth = 0):            
-    if depth == 3:
+    if depth == 4:
         return heuristic(board,score)
     choices = getChoices(board)
     moves = []
     for choice in choices:
-        for state in getSpaces(board):
-            moves.append([AI(state[1].copy(choice,False),score,depth+1),choice,state[0]])
+        moves.append([AI(board.copy(choice),score,depth+1),choice])
+        moves.append([AI(board.copy(choice),score,depth+1),choice])
+        moves.append([AI(board.copy(choice),score,depth+1),choice])
+        moves.append([AI(board.copy(choice),score,depth+1),choice])
     if depth != 0:
         if len(moves)> 0:
-            return sum([move[0]*move[2] for move in moves])/len(moves)
+            return sum([move[0] for move in moves])/len(moves)
         return -1000
     if choices == []:
         if min([board.board[0][0],board.board[1][0],board.board[2][0],board.board[3][0]])> 0 and board.copy("down").board != board.board:
@@ -225,8 +227,8 @@ def AI(board,score, depth = 0):
             return "down"
         else:
             return "stop"
-    
     return max(moves,key = lambda x: x[0])[1]
+
 
 def game():    
     f = open("C:\\Users\\moses\\Desktop\\gamePrint.txt", "a")
