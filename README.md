@@ -9,6 +9,6 @@ hAIngman - another favorite. This project is the perfect Hangman guesser and I f
 
 For all of my projects both complete and incomplete, check here https://repl.it/@moseshoward18. What you see here are the highlights of personal projects.
 
-Resume https://docs.google.com/document/d/1yQVpq4Y6wmoOx-Haww89WqJPHs1qVfSEJw1DeuUwlSI/edit?usp=sharing
+Resume: https://docs.google.com/document/d/1yQVpq4Y6wmoOx-Haww89WqJPHs1qVfSEJw1DeuUwlSI/edit?usp=sharing
 
 LinkedIn: https://www.linkedin.com/in/moses-howard/
