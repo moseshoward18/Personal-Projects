@@ -1,0 +1,86 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Feb 19 19:06:39 2019
+
+@author: moses
+"""
+from collections import deque
+from copy import deepcopy
+
+queue = deque([])
+used = {}
+
+class Node:
+    
+  def swap(self,board,a,b):
+    temp = board[a]
+    board[a] = board[b]
+    board[b] = temp
+    return board
+
+  def __init__(self,board,parent):
+    self.me = self
+    self.parent = parent
+    self.board = board
+    if parent == "alpha":
+      empty = board.index(0)
+      if empty > 2:
+          queue.append(Node(self.swap(board[:],empty,empty-3),self))
+      if empty < 6:
+          queue.append(Node(self.swap(board[:],empty,empty+3),self))
+      if empty%3!=0:
+          queue.append(Node(self.swap(board[:],empty,empty-1),self))
+      if (empty-2)%3!=0:
+          queue.append(Node(self.swap(board[:],empty,empty+1),self))
+  
+  def childMaker(self,newChild):
+      if str(deepcopy(newChild)) not in used:
+          queue.append(Node(newChild,self.me))
+
+  def initialize(self):
+    board = self.board
+    empty = board.index(0)
+    if empty > 2:
+      self.childMaker(self.swap(board[:],empty,empty-3))
+    if empty < 6:
+      self.childMaker(self.swap(board[:],empty,empty+3))
+    if empty%3!=0:
+      self.childMaker(self.swap(board[:],empty,empty-1))
+    if (empty-2)%3!=0:
+      self.childMaker(self.swap(board[:],empty,empty+1))
+
+  def getBoard(self):
+      return self.board
+  def getParent(self):
+      return self.parent
+  
+def getTrail(p):
+    if p.parent == "alpha":
+        return [p.board]
+    return [p.board]+ getTrail(p.parent)
+    
+
+    
+def BFS(board):
+  num = 0
+  Node(board,"alpha")
+  while(True):
+    leaf = queue.popleft()
+    if leaf.getBoard() == [0,1,2,3,4,5,6,7,8]:
+      return getTrail(leaf)
+    used[str(leaf.getBoard())] = leaf.getBoard()
+    leaf.initialize()
+    num+=1
+    print(num, len(queue))
+  
+def print_result(result):
+    for board in reversed(result):
+        print(board[0],board[1],board[2])
+        print(board[3],board[4],board[5])
+        print(board[6],board[7],board[8])
+        print("To")
+
+#lst = BFS([1,2,0,3,4,5,6,7,8])
+lst = BFS([8, 7, 5, 4, 1, 2, 3, 0, 6])
+print("done")
+print_result(lst)
