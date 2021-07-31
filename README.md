@@ -7,8 +7,4 @@ AI Mold - a personal favorite project that uses pygame to simulate the natural b
 
 hAIngman - another favorite. This project is the perfect Hangman guesser and I frequently used it to impress new students of mine. It uses a simple algorithm to guess your chosen word from the word list associated with it. Test it here-> https://repl.it/@moseshoward18/hAIngman
 
-For all of my projects both complete and incomplete, check here https://repl.it/@moseshoward18. What you see here are the highlights of personal projects.
-
-Resume: https://docs.google.com/document/d/1yQVpq4Y6wmoOx-Haww89WqJPHs1qVfSEJw1DeuUwlSI/edit?usp=sharing
-
 LinkedIn: https://www.linkedin.com/in/moses-howard/
